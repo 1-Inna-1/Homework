@@ -32,12 +32,46 @@ double measureTimeStd(std::vector<T> data) {
     return std::chrono::duration<double, std::milli>(end - start).count();
 }
 
+
+
+//
+int partitionNaive(std::vector<int>& a, int lo, int hi) {
+    int pivot = a[lo];
+    int i = lo, j = hi + 1;
+    while (true) {
+        do { ++i; } while (i <= hi && a[i] < pivot);
+        do { --j; } while (a[j] > pivot);
+        if (i >= j) break;
+        std::swap(a[i], a[j]);
+    }
+    std::swap(a[lo], a[j]);
+    return j;
+}
+
+void QuickSort(std::vector<int>& a, int lo, int hi) {
+    if (lo >= hi) return;
+    int p = partitionNaive(a, lo, hi);
+    QuickSort(a, lo, p - 1);
+    QuickSort(a, p + 1, hi);
+}
+
+double measureQuick(std::vector<int> data) {   // по копии
+    auto start = std::chrono::high_resolution_clock::now();
+    QuickSort(data, 0, (int)data.size() - 1);
+    auto end = std::chrono::high_resolution_clock::now();
+    return std::chrono::duration<double, std::milli>(end - start).count();
+}
+//
+
+
+
+
 int main() {
     SetConsoleOutputCP(65001);
     std::mt19937 rng(123);
 
     std::cout << "=== Бенчмарк для int ===" << std::endl;
-    std::cout << std::left << std::setw(12) << "Размер"
+    std::cout << std::left << std::setw(12) << "Размер "
         << std::setw(15) << "mySort (мс)"
         << std::setw(15) << "std::sort (мс)"
         << std::setw(15) << "Отношение" << std::endl;
@@ -104,9 +138,29 @@ int main() {
         std::cout << "mySort:    " << std::fixed << std::setprecision(2) << myTime << " мс" << std::endl;
         std::cout << "std::sort: " << stdTime << " мс" << std::endl;
         std::cout << "Отношение: " << myTime / stdTime << std::endl;
-        std::cout << "(Merge sort нормально работает на отсортированных данных, " << std::endl;
+        std::cout << "(Mysort нормально работает на отсортированных данных, " << std::endl;
         std::cout << " в отличие от quicksort)" << std::endl;
     }
 
+    std::cout << "\n=== quicksort/mysort ===" << std::endl;
+    std::cout << std::left << std::setw(12) << "Размер "
+        << std::setw(15) << "mySort(мс) "
+        << std::setw(18) << "quick(мс) "
+        << std::setw(15) << "quick/mySort" << std::endl;
+    std::cout << std::string(60, '-') << std::endl;
+    {
+        for (int size : {1000, 2000, 5000, 10000}) {
+            std::vector<int> v(size);
+            for (int i = 0; i < size; i++) v[i] = i;   // уже отсортирован = худший вход
+            double myTime = measureTime(v, std::less<int>{});
+            double quickTime = measureQuick(v);
+            std::cout << std::left << std::setw(12) << size
+                << std::fixed << std::setprecision(2)
+                << std::setw(15) << myTime
+                << std::setw(18) << quickTime
+                << std::setw(15) << (quickTime / myTime) << std::endl;
+        }
+    }
+    std::cout << "\nВывод: колонка quick/mySort РАСТЁТ с размером — это отпечаток O(n^2) против O(n log n)." << std::endl;
     return 0;
 }
