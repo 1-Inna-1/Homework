@@ -44,7 +44,7 @@ bool checkSorted(const std::vector<T>& original, const std::vector<T>& sorted, c
 // Компаратор для Point (для mySort)
 struct PointCompare {
     bool operator()(const Point& a, const Point& b) const {
-        return a.distanceToOrigin() < b.distanceToOrigin();
+        return a.distance() < b.distance();
     }
 };
 
@@ -112,7 +112,7 @@ int main() {
         if (checkSorted(original, v, "Повторяющиеся (int)")) passed++;
     }
 
-    std::mt19937 rng(42);  // случайные числа
+    std::mt19937 rng(42);
     for (int size : {10, 1000, 100000}) {
         total++;
         std::vector<int> v(size);

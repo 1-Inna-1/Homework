@@ -6,57 +6,45 @@
 
 template <typename It, typename Compare = std::less<typename std::iterator_traits<It>::value_type>>
 void mySort(It first, It last, Compare comp = Compare{}) {
-    // Считаем, сколько элементов между first и last
     auto n = std::distance(first, last);
-
     if (n <= 1) return;
 
     auto mid = first;
-    std::advance(mid, n / 2);  // сдвигаем итератор на n/2 позиций вперёд
-
-    // Рекурсивно сортируем левую половину (от first до mid)
+    std::advance(mid, n / 2);
     mySort(first, mid, comp);
-    // Рекурсивно сортируем правую половину (от mid до last)
     mySort(mid, last, comp);
 
-    // Теперь обе половины отсортированы. Нужно их "слить" в одну.
-    // Копируем элементы во временные векторы
-    using ValueType = typename std::iterator_traits<It>::value_type;
-    std::vector<ValueType> left(first, mid);   // левая половина
-    std::vector<ValueType> right(mid, last);   // правая половина
+    std::vector<typename std::iterator_traits<It>::value_type> left(first, mid);  
+    std::vector<typename std::iterator_traits<It>::value_type> right(mid, last);
 
-    // Слияние: берём меньший элемент из left или right и кладём в результат
-    auto it = first;          // куда пишем результат
-    auto li = left.begin();   // текущая позиция в left
-    auto le = left.end();     // конец left
-    auto ri = right.begin();  // текущая позиция в right
-    auto re = right.end();    // конец right
 
-    // Пока в обеих половинах есть элементы
-    while (li != le && ri != re) {
-        // Если элемент из right меньше элемента из left (по нашему компаратору)
-        if (comp(*ri, *li)) {
-            *it = *ri;   // берём из right
-            ++ri;
+    auto res = first;         
+    auto l_index = left.begin();   
+    auto l_end = left.end();    
+    auto r_index = right.begin(); 
+    auto r_end = right.end();   
+
+    while (l_index != l_end && r_index != r_end) {
+        if (comp(*r_index, *l_index)) {
+            *res = *r_index;
+            ++r_index;
         }
         else {
-            *it = *li;   // берём из left
-            ++li;
+            *res = *l_index;
+            ++l_index;
         }
-        ++it;
+        ++res;
     }
 
-    // Если в left остались элементы — докопировать их
-    while (li != le) {
-        *it = *li;
-        ++li;
-        ++it;
+    while (l_index != l_end) {
+        *res = *l_index;
+        ++l_index;
+        ++res;
     }
 
-    // Если в right остались элементы — докопировать их
-    while (ri != re) {
-        *it = *ri;
-        ++ri;
-        ++it;
+    while (r_index != r_end) {
+        *res = *r_index;
+        ++r_index;
+        ++res;
     }
 }

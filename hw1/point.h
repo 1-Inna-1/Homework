@@ -6,8 +6,8 @@ struct Point {
     double x;  
     double y; 
 
-    double distanceToOrigin() const {
-        return std::sqrt(x * x + y * y); // расстояние от точки до начала координат
+    double distance() const {
+        return std::sqrt(x * x + y * y);
     }
 };
 
@@ -17,7 +17,7 @@ inline std::ostream& operator<<(std::ostream& os, const Point& p) {
 }
 
 inline bool operator<(const Point& a, const Point& b) {
-    return a.distanceToOrigin() < b.distanceToOrigin();
+    return a.distance() < b.distance();
 }
 
 inline bool operator==(const Point& a, const Point& b) {

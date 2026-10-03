@@ -8,14 +8,14 @@
 #include "../mysort.h"
 #include "../point.h"
 
-// Компаратор для Point
+
 struct PointCompare {
     bool operator()(const Point& a, const Point& b) const {
-        return a.distanceToOrigin() < b.distanceToOrigin();
+        return a.distance() < b.distance();
     }
 };
 
-// замер времени
+
 template <typename T, typename Compare>
 double measureTime(std::vector<T> data, Compare comp) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -62,7 +62,7 @@ int main() {
     }
 
     std::cout << "\n=== Бенчмарк для Point ===" << std::endl;
-    std::cout << std::left << std::setw(12) << "Размер"
+    std::cout << std::left << std::setw(12) << "Размер "
         << std::setw(15) << "mySort (мс)"
         << std::setw(15) << "std::sort (мс)"
         << std::setw(15) << "Отношение" << std::endl;
@@ -96,7 +96,7 @@ int main() {
     {
         int size = 100000;
         std::vector<int> v(size);
-        for (int i = 0; i < size; i++) v[i] = i;  // уже отсортирован
+        for (int i = 0; i < size; i++) v[i] = i; 
 
         double myTime = measureTime(v, std::less<int>{});
         double stdTime = measureTimeStd(v);
@@ -104,8 +104,8 @@ int main() {
         std::cout << "mySort:    " << std::fixed << std::setprecision(2) << myTime << " мс" << std::endl;
         std::cout << "std::sort: " << stdTime << " мс" << std::endl;
         std::cout << "Отношение: " << myTime / stdTime << std::endl;
-        std::cout << "(Merge sort не деградирует на отсортированных данных, " << std::endl;
-        std::cout << " в отличие от наивного quicksort)" << std::endl;
+        std::cout << "(Merge sort нормально работает на отсортированных данных, " << std::endl;
+        std::cout << " в отличие от quicksort)" << std::endl;
     }
 
     return 0;
