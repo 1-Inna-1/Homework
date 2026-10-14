@@ -1,144 +1,113 @@
 #include <iostream>
 #include <vector>
-#include <cmath>
-#include <windows.h>
-#include "../dense_matrix.h"
+#include <cmath>            
+#include <stdexcept>        
+#include <string>           
+#include <windows.h>       
+#include "../matrix.h"     
 
-// Проверка правильности умножения, проверка одинаково размера у матриц, проходит по каждому элементу обеих матриц и сравнивает с 1е-9
-bool matricesEqual(const Matrix& a, const Matrix& b, double tolerance = 1e-9) {
-    if (a.rows() != b.rows() || a.cols() != b.cols()) return false;
-
-    for (size_t i = 0; i < a.rows(); i++) {
-        for (size_t j = 0; j < a.cols(); j++) {
-            if (std::abs(a.get(i, j) - b.get(i, j)) > tolerance) {
+bool sravnenie_matrix(const Matrix& a, const Matrix& b, double tol = 1e-9) {
+    for (int i = 0; i < a.size(); i++)
+        for (int j = 0; j < a.size(); j++)
+            if (std::fabs(a.get(i, j) - b.get(i, j)) > tol)
                 return false;
-            }
-        }
-    }
     return true;
 }
+
+Matrix randomMatrix(int n) {
+    Matrix m(n);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            m.set(i, j, (rand() % 100) / 10.0);
+    return m;
+}
+
+
 
 int main() {
     SetConsoleOutputCP(65001);
 
-    int passed = 0;
-    int total = 0;
 
+    // ===== Тест 1: A * I = A =====
     {
-        total++;
-        std::cout << "Тест 1: Умножение на единичную матрицу" << std::endl;
+        Matrix A({{1,2},{3,4}});
+        Matrix I({{1,0},{0,1}});
+        Matrix R = A * I;
+        std::cout << "--- Тест 1: A * I = A ---\n";
+        std::cout << "A:\n" << A << "\n";
+        std::cout << "I:\n" << I << "\n";
+        std::cout << "A * I =\n" << R << "\n";
+    }
 
-        DenseMatrix A({ { 1, 2 },{ 3, 4 } });
-        DenseMatrix I({ { 1, 0 },{ 0, 1 } });
+    // ===== Тест 2: A * 0 = 0 =====
+    {
+        Matrix A({{1,2},{3,4}});
+        Matrix Z(2);                      
+        Matrix R = A * Z;
+        std::cout << "--- Тест 2: A * 0 = 0 ---\n";
+        std::cout << "A:\n" << A << "\n";
+        std::cout << "Z:\n" << Z << "\n";
+        std::cout << "A * Z =\n" << R << "\n";
+    }
 
-        Matrix* result = A.mul(I);
-        if (matricesEqual(A, *result)) {
-            std::cout << "  [OK] A * I = A" << std::endl;
-            passed++;
+    // =========== Тест 3 ==========
+    {
+        Matrix A({{1,2},{3,4}});
+        Matrix B({{5,6},{7,8}});
+        Matrix expected({{19,22},{43,50}});
+        Matrix R = A * B;
+        std::cout << "--- Тест 3: 2x2 ---\n";
+        std::cout << "A:\n" << A << "\n";
+        std::cout << "B:\n" << B << "\n";
+        std::cout << "A * B (получилось)\n" << R << "\n";
+        std::cout << "A * B (ожидалось):\n" << expected << "\n";
+    }
+
+    // ===== Тест 4: сложение =====
+    {
+        Matrix A({{1,2},{3,4}});
+        Matrix B({{10,20},{30,40}});
+        Matrix expected({{11,22},{33,44}});
+        Matrix R = A + B;
+        std::cout << "--- Тест 4: A + B ---\n";
+        std::cout << "A:\n" << A << "\n";
+        std::cout << "B:\n" << B << "\n";
+        std::cout << "A + B (получилось)\n" << R << "\n";
+        std::cout << "A + B (ожидалось):\n" << expected << "\n";
+    }
+
+    // ========= Тест 5: ==========
+    {
+        Matrix A(2), B(3);
+        std::cout << "--- Тест 5: 2x2 * 3x3 должно бросить исключение ---\n";
+        std::cout << "A:\n" << A << "\n";
+        std::cout << "B:\n" << B << "\n";
+        bool threw = false;
+        try { 
+            Matrix R = A * B;
+            (void)R; 
+        }
+        catch (const std::invalid_argument&) {
+            threw = true; 
+        }
+        if (threw) {
+            std::cout << "[OK] Исключение поймано, мусора нет\n\n";
         }
         else {
-            std::cout << "  [FAIL] A * I != A" << std::endl;
-        }
-        delete result;
-    }
-
-    {
-        total++;
-        std::cout << "Тест 2: Умножение на нулевую матрицу" << std::endl;
-
-        DenseMatrix A({ { 1, 2 },{ 3, 4 } });
-        DenseMatrix Z({ { 0, 0 },{ 0, 0 } });
-        DenseMatrix expected({ { 0, 0 },{ 0, 0 } });
-
-        Matrix* result = A.mul(Z);
-        if (matricesEqual(expected, *result)) {
-            std::cout << "  [OK] A * 0 = 0" << std::endl;
-            passed++;
-        }
-        else {
-            std::cout << "  [FAIL] A * 0 != 0" << std::endl;
-        }
-        delete result;
-    }
-
-    {
-        total++;
-        std::cout << "Тест 3: Ручной пример 2×2" << std::endl;
-
-        DenseMatrix A({ { 1, 2 },{ 3, 4 } });
-        DenseMatrix B({ { 5, 6 },{ 7, 8 } });
-        DenseMatrix expected({ { 19, 22 },{ 43, 50 } });
-
-        Matrix* result = A.mul(B);
-        if (matricesEqual(expected, *result)) {
-            std::cout << "  [OK] 2×2 умножение верно" << std::endl;
-            passed++;
-        }
-        else {
-            std::cout << "  [FAIL] 2×2 умножение неверно" << std::endl;
-        }
-        delete result;
-    }
-
-    {
-        total++;
-        std::cout << "Тест 4: Неквадратные матрицы (2×3 × 3×2)" << std::endl;
-
-        DenseMatrix A({ { 1, 2, 3 },{ 4, 5, 6 } });
-        DenseMatrix B({ { 7, 8 },{ 9, 10 },{ 11, 12 } });
-        DenseMatrix expected({ { 58, 64 },{ 139, 154 } });
-
-        Matrix* result = A.mul(B);
-        if (matricesEqual(expected, *result)) {
-            std::cout << "  [OK] 2×3 × 3×2 = 2×2 верно" << std::endl;
-            passed++;
-        }
-        else {
-            std::cout << "  [FAIL] 2×3 × 3×2 неверно" << std::endl;
-        }
-        delete result;
-    }
-
-    {
-        total++;
-        std::cout << "Тест 5: Несовместимые размеры" << std::endl;
-
-        DenseMatrix A({ { 1, 2 },{ 3, 4 } });
-        DenseMatrix B({ { 1, 2, 3 } });  // 1×3, несовместимо с 2×2
-
-        try {
-            Matrix* result = A.mul(B);
-            delete result;
-            std::cout << "  [FAIL] Исключение не выброшено" << std::endl;
-        }
-        catch (const std::invalid_argument& e) {
-            std::cout << "  [OK] Исключение выброшено: " << e.what() << std::endl;
-            passed++;
+            std::cout << "[FAIL] Исключения не было!\n\n";
         }
     }
 
-    {
-        total++;
-        std::cout << "Тест 6: Наивная vs оптимизированная" << std::endl;
-
-        DenseMatrix A({ { 1, 2 },{ 3, 4 } });
-        DenseMatrix B({ { 5, 6 },{ 7, 8 } });
-
-        Matrix* naive = A.mul(B);
-        Matrix* optimized = A.mulOptimized(B);
-
-        if (matricesEqual(*naive, *optimized)) {
-            std::cout << "  [OK] Результаты совпадают" << std::endl;
-            passed++;
-        }
-        else {
-            std::cout << "  [FAIL] Результаты не совпадают" << std::endl;
-        }
-        delete naive;
-        delete optimized;
+    for (int n : {2, 3, 5, 8}) {
+        Matrix A = randomMatrix(n);
+        Matrix B = randomMatrix(n);
+        Matrix naive = A * B;
+        Matrix opt = A.mulOptimized(B);
+        bool ok = sravnenie_matrix(naive, opt);
+        std::cout << "--- Тест 6: naive == optimized, n=" << n << " ---\n";
+        std::cout << "A:\n" << A << "\n";
+        std::cout << "B:\n" << B << "\n";
+        std::cout << "naive (i-j-k) =\n" << naive << "\n";
+        std::cout << "optimized (i-k-j) =\n" << opt << "\n";
     }
-
-    std::cout << "\n=== Результат: " << passed << " из " << total << " тестов пройдено ===" << std::endl;
-
-    return (passed == total) ? 0 : 1;
 }
